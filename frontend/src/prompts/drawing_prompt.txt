@@ -3,15 +3,19 @@ You are an expert in JavaScript Canvas 2D graphics. Your task is to take a user'
 **User Goal:** "{{goal}}"
 
 **Available Context & API:**
-*   `ctx`: The Canvas 2D Rendering Context. You can use any standard method on it, such as `ctx.beginPath()`, `ctx.moveTo()`, `ctx.lineTo()`, `ctx.arc()`, `ctx.stroke()`, `ctx.fill()`, `ctx.save()`, `ctx.restore()`, `ctx.translate()`, `ctx.rotate()`, etc.
+*   `ctx`: The Canvas 2D Rendering Context. You can use any standard method on it.
 *   The canvas dimensions are `ctx.canvas.width` and `ctx.canvas.height`.
 
 **Important Rules:**
+*   You must generate the complete drawing in a single block of code.
+*   You can and should define local helper functions if needed.
 *   You must only output the raw JavaScript code for the function body, without any markdown formatting or other text.
-*   Your code will be executed directly within an `async function(ctx) { ... }` block.
-*   Do not include any `import` statements or attempt to access any global variables like `window` or `document`.
 
-**Example Goal:** 'Draw a clock showing the current time, with hour, minute, and second hands.'
+---
+
+**Example 1: Drawing a Clock**
+
+**User Goal:** "Draw a clock showing the current time."
 
 **Your Output (raw JavaScript code):**
 ```javascript
@@ -57,14 +61,11 @@ function drawTime(ctx, radius) {
   let hour = now.getHours();
   let minute = now.getMinutes();
   let second = now.getSeconds();
-  //hour
   hour = hour % 12;
   hour = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60)) + (second * Math.PI / (360 * 60));
   drawHand(ctx, hour, radius * 0.5, radius * 0.07);
-  //minute
   minute = (minute * Math.PI / 30) + (second * Math.PI / (30 * 60));
   drawHand(ctx, minute, radius * 0.7, radius * 0.07);
-  // second
   second = (second * Math.PI / 30);
   drawHand(ctx, second, radius * 0.8, radius * 0.02);
 }
@@ -83,4 +84,59 @@ function drawHand(ctx, pos, length, width) {
 drawFace(ctx, radius);
 drawNumbers(ctx, radius);
 drawTime(ctx, radius);
+```
+
+---
+
+**Example 2: Drawing a Chessboard**
+
+**User Goal:** "Draw a complete chessboard with all pieces in their starting positions."
+
+**Your Output (raw JavaScript code):**
+```javascript
+const size = ctx.canvas.width;
+const squareSize = size / 8;
+const lightColor = '#f0d9b5';
+const darkColor = '#b58863';
+
+// Draw the board
+for (let row = 0; row < 8; row++) {
+  for (let col = 0; col < 8; col++) {
+    if ((row + col) % 2 === 0) {
+      ctx.fillStyle = lightColor;
+    } else {
+      ctx.fillStyle = darkColor;
+    }
+    ctx.fillRect(col * squareSize, row * squareSize, squareSize, squareSize);
+  }
+}
+
+// Draw the pieces
+const pieceFont = `bold ${squareSize * 0.8}px serif`;
+ctx.font = pieceFont;
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+
+const pieces = {
+  rook: '♖', knight: '♘', bishop: '♗', queen: '♕', king: '♔', pawn: '♙'
+};
+
+const backRank = [pieces.rook, pieces.knight, pieces.bishop, pieces.queen, pieces.king, pieces.bishop, pieces.knight, pieces.rook];
+const pawnRank = Array(8).fill(pieces.pawn);
+
+function drawPiece(piece, col, row) {
+  const x = col * squareSize + squareSize / 2;
+  const y = row * squareSize + squareSize / 2;
+  ctx.fillText(piece, x, y);
+}
+
+// White pieces
+ctx.fillStyle = 'white';
+backRank.forEach((p, i) => drawPiece(p, i, 7));
+pawnRank.forEach((p, i) => drawPiece(p, i, 6));
+
+// Black pieces
+ctx.fillStyle = 'black';
+backRank.forEach((p, i) => drawPiece(p, i, 0));
+pawnRank.forEach((p, i) => drawPiece(p, i, 1));
 ```
