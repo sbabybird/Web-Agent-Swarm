@@ -3,7 +3,7 @@ import './App.css';
 import DrawingCanvas from './components/DrawingCanvas';
 import managerPromptTemplate from './prompts/manager_prompt.txt?raw';
 import drawingPromptTemplate from './prompts/drawing_prompt.txt?raw';
-import browserPromptTemplate from './prompts/browser_prompt.txt?raw'; // We will create this next
+import browserPromptTemplate from './prompts/browser_prompt.txt?raw';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
@@ -78,8 +78,8 @@ function App() {
         }
 
         addLog(`🧠 [Agent]: Generated a response.`);
-        const jsonMatch = llmResult.match(/```(json)?\n([\s\S]*?)\n```/);
-        const extractedContent = jsonMatch ? jsonMatch[2] : llmResult;
+        const codeMatch = llmResult.match(/```(?:javascript|json)?\n([\s\S]*?)\n```/);
+        const extractedContent = codeMatch ? codeMatch[1] : llmResult;
         return extractedContent.trim();
     };
 

@@ -127,6 +127,12 @@ app.post('/draw', async (req, res) => {
     });
 });
 
+app.post('/log-error', async (req, res) => {
+    const { error } = req.body;
+    console.error('[FRONTEND ERROR]', error);
+    res.sendStatus(200);
+});
+
 app.post('/run-llm', async (req, res) => {
     const { prompt } = req.body;
     if (!LOCAL_LLM_URL) {

@@ -1,8 +1,24 @@
 import React, { useRef, useEffect } from 'react';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+
 interface DrawingCanvasProps {
     code: string | null;
 }
+
+const logErrorToServer = async (error: any) => {
+    try {
+        await fetch(`${BACKEND_URL}/log-error`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ error: error.toString() }),
+        });
+    } catch (e) {
+        console.error("Failed to log error to server:", e);
+    }
+};
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ code }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -28,6 +44,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ code }) => {
             drawFunction(context);
         } catch (error) {
             console.error("Error executing drawing code:", error);
+            logErrorToServer(error);
             // Optionally, display an error message on the canvas
             context.fillStyle = 'red';
             context.font = '16px sans-serif';
