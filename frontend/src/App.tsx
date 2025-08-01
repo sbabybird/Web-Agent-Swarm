@@ -3,18 +3,21 @@ import { useTranslation } from 'react-i18next';
 import './App.css';
 import DrawingCanvas from './components/DrawingCanvas';
 import managerPromptTemplate from './prompts/manager_prompt.txt?raw';
-import drawingPromptTemplate from './prompts/drawing_prompt.txt?raw';
+import drawingGridPromptTemplate from './prompts/draw_grid_prompt.txt?raw';
+import drawingPiecesPromptTemplate from './prompts/draw_pieces_prompt.txt?raw';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
-const getManagerPrompt = (goal: string): string => {
-    return managerPromptTemplate.replace('{{goal}}', goal);
+const getManagerPrompt = (context: any): string => {
+    return managerPromptTemplate.replace('{{context}}', JSON.stringify(context, null, 2));
 };
 
-const getExpertPrompt = (taskType: string, goal: string): string => {
+const getExpertPrompt = (action: any, goal: string): string => {
     let template = '';
-    if (taskType === 'drawing') {
-        template = drawingPromptTemplate;
+    if (action.action === 'draw_grid') {
+        template = drawingGridPromptTemplate;
+    } else if (action.action === 'draw_pieces') {
+        template = drawingPiecesPromptTemplate.replace('{{context.team === \'white\' ? \'\'white\'\' : \'\'black\'\'}}', action.payload.team === 'white' ? "white" : "black");
     }
     return template.replace('{{goal}}', goal);
 };
@@ -82,15 +85,10 @@ function App() {
         return extractedContent.trim();
     };
 
-    const runManagerAgent = async (goal: string): Promise<any> => {
-        const managerPrompt = getManagerPrompt(goal);
+    const runManagerAgent = async (context: any): Promise<any> => {
+        const managerPrompt = getManagerPrompt(context);
         const managerResponse = await runLLM(managerPrompt);
-        const plan = JSON.parse(managerResponse);
-
-        addLog(`🤔 [Manager Thought]: ${plan.thought}`);
-        addLog(`🧐 [Manager Critique]: ${plan.critique}`);
-
-        return plan.decision;
+        return JSON.parse(managerResponse);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -100,26 +98,44 @@ function App() {
         setDrawingCodes([]);
         addLog('🚀 Starting Agent Swarm...');
 
+        const context = {
+            goal: goal,
+            history: [],
+        };
+
         try {
-            const decision = await runManagerAgent(goal);
+            let loopCount = 0;
+            const maxLoops = 10; // Safety break
 
-            addLog(`[DEBUG] Received decision from Manager: ${JSON.stringify(decision, null, 2)}`);
+            while (loopCount < maxLoops) {
+                loopCount++;
+                addLog(`--- Turn ${loopCount} ---`);
 
-            if (!decision || !decision.taskType) {
-                throw new Error('Manager failed to classify the task.');
+                const nextAction = await runManagerAgent(context);
+
+                addLog(`[DEBUG] Next action from Manager: ${JSON.stringify(nextAction, null, 2)}`);
+
+                if (nextAction.action === 'finish') {
+                    addLog(`🏁 [Manager]: Task finished. Reason: ${nextAction.payload.reason}`);
+                    break; // Exit the loop
+                }
+
+                const expertPrompt = getExpertPrompt(nextAction, context.goal);
+                const expertCode = await runLLM(expertPrompt);
+
+                if (nextAction.action.startsWith('draw_')) {
+                    setDrawingCodes(prevCodes => [...prevCodes, expertCode]);
+                    addLog('✅ [Drawing Expert]: Canvas updated with new code.');
+                } else {
+                    throw new Error(`Unknown action type: ${nextAction.action}`);
+                }
+
+                context.history.push(nextAction);
             }
 
-            const expertPrompt = getExpertPrompt(decision.taskType, goal);
-            const expertCode = await runLLM(expertPrompt);
-
-            if (decision.taskType === 'drawing') {
-                setDrawingCodes([expertCode]);
-                addLog('✅ [Drawing Expert]: Canvas updated with new code.');
-            } else {
-                throw new Error(`Unsupported task type: ${decision.taskType}`);
+            if (loopCount >= maxLoops) {
+                addLog('⚠️ Safety break triggered. Maximum loop count reached.');
             }
-
-            addLog('🎉 Swarm task finished successfully!');
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
