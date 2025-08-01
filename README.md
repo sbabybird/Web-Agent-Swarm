@@ -6,11 +6,9 @@ An experiment in creating a multi-capability, browser-based agent system powered
 
 ## 核心理念
 
-本项目旨在构建一个可扩展的、多能力的智能体平台。系统的核心是一个“任务调度总管”智能体，它能理解用户的目标，判断其意图（例如，是“网页自动化”还是“绘图”），然后调用相应的“专家”智能体来完成任务。
+本项目旨在构建一个可扩展的、多能力的智能体平台。系统的核心是一个“任务调度总管”智能体，它能理解用户的目标，并调用相应的“专家”智能体来完成任务。
 
-*   **Manager Agent (任务调度总管):** 项目的“大脑”，负责分析用户目标并分派任务。
-*   **Browser Expert (网页自动化专家):** 接收网页自动化任务，并生成可执行的、安全的Playwright JavaScript代码。
-*   **Drawing Expert (绘画专家):** 接收绘画任务，并生成使用原生Canvas 2D API的、可执行的JavaScript代码。
+**欲了解详细的架构设计和数据流，请参阅 [架构概览 (Architectural Overview)](./docs/Architectural_Overview.md)。**
 
 ## 技术栈
 
@@ -50,4 +48,3 @@ An experiment in creating a multi-capability, browser-based agent system powered
 
 4.  **访问:**
     *   前端应用将在 `http://localhost:5173` 上可用。
-
