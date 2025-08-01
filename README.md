@@ -1,6 +1,6 @@
-# Web Agent Swarm
+# Web Agent Swarm (网络智能体蜂群)
 
-An experiment in creating a multi-capability, browser-based agent system powered by Large Language Models (LLMs).
+一个由大型语言模型（LLM）驱动的、基于浏览器的、多能力智能体系统实验项目。
 
 ---
 
@@ -15,7 +15,7 @@ An experiment in creating a multi-capability, browser-based agent system powered
 *   **前端:** React, TypeScript, Vite
 *   **后端:** Node.js, Express
 *   **浏览器自动化:** Playwright
-*   **安全代码执行:** Node.js `vm` module
+*   **安全代码执行:** Node.js `vm` 模块
 *   **部署:** Docker, Docker Compose
 
 ## 关于本项目
@@ -29,7 +29,6 @@ An experiment in creating a multi-capability, browser-based agent system powered
     *   确保您的系统中有一个正在运行的、兼容OpenAI API的LLM服务（如Ollama）。
 
 2.  **配置:**
-    *   复制 `.env.example` (如果存在) 为 `.env` 文件。
     *   在 `docker-compose.yml` 文件中，修改 `LOCAL_LLM_URL` 环境变量，使其指向您本地LLM服务的正确地址。
 
 3.  **首次启动与开发:**
@@ -48,3 +47,4 @@ An experiment in creating a multi-capability, browser-based agent system powered
 
 4.  **访问:**
     *   前端应用将在 `http://localhost:5173` 上可用。
+
