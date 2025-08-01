@@ -1,31 +1,33 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './App.css';
 import DrawingCanvas from './components/DrawingCanvas';
 import managerPromptTemplate from './prompts/manager_prompt.txt?raw';
-import drawingPromptTemplate from './prompts/drawing_prompt.txt?raw';
-import browserPromptTemplate from './prompts/browser_prompt.txt?raw';
+import drawingGridPromptTemplate from './prompts/draw_grid_prompt.txt?raw';
+import drawingPiecesPromptTemplate from './prompts/draw_pieces_prompt.txt?raw';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
-const getManagerPrompt = (goal: string): string => {
-    return managerPromptTemplate.replace('{{goal}}', goal);
+const getManagerPrompt = (context: any): string => {
+    return managerPromptTemplate.replace('{{context}}', JSON.stringify(context, null, 2));
 };
 
-const getExpertPrompt = (taskType: string, goal: string): string => {
+const getExpertPrompt = (action: any, goal: string): string => {
     let template = '';
-    if (taskType === 'browser_automation') {
-        template = browserPromptTemplate;
-    } else if (taskType === 'drawing') {
-        template = drawingPromptTemplate;
+    if (action.action === 'draw_grid') {
+        template = drawingGridPromptTemplate;
+    } else if (action.action === 'draw_pieces') {
+        template = drawingPiecesPromptTemplate.replace('{{context.team === \'white\' ? \'\'white\'\' : \'\'black\'\'}}', action.payload.team === 'white' ? "white" : "black");
     }
     return template.replace('{{goal}}', goal);
 };
 
 function App() {
-    const [goal, setGoal] = useState('Draw a clock showing the current time.');
+    const { t } = useTranslation();
+    const [goal, setGoal] = useState(t('goal_placeholder'));
     const [logs, setLogs] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [drawingCode, setDrawingCode] = useState<string | null>(null);
+    const [drawingCodes, setDrawingCodes] = useState<(string | null)[]>([]);
 
     const addLog = (message: string) => {
         setLogs(prev => [message, ...prev]);
@@ -83,67 +85,57 @@ function App() {
         return extractedContent.trim();
     };
 
-    const executeBrowserCode = async (code: string) => {
-        addLog(`▶️ [Browser Expert]: Executing Playwright code...`);
-        try {
-            const response = await fetch(`${BACKEND_URL}/execute-code`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ code }),
-            });
-
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.details || 'Unknown error from backend');
-            }
-            addLog(`✅ [Browser Expert]: ${data.message}`);
-            if (data.logs) {
-                data.logs.forEach((log: string) => addLog(`📄 [Browser Log]: ${log}`));
-            }
-
-        } catch (error: any) {
-            const errorMessage = error.message || 'An unknown error occurred.';
-            addLog(`❌ [Browser Expert]: Code execution failed - ${errorMessage}`);
-            throw new Error(`Code execution failed: ${errorMessage}`);
-        }
+    const runManagerAgent = async (context: any): Promise<any> => {
+        const managerPrompt = getManagerPrompt(context);
+        const managerResponse = await runLLM(managerPrompt);
+        return JSON.parse(managerResponse);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setLogs([]);
-        setDrawingCode(null);
+        setDrawingCodes([]);
+        addLog('🚀 Starting Agent Swarm...');
+
+        const context = {
+            goal: goal,
+            history: [],
+        };
 
         try {
-            // Step 1: Ask the Manager to classify the task
-            addLog('🚀 Starting Agent Swarm...');
-            const managerPrompt = getManagerPrompt(goal);
-            const managerResponse = await runLLM(managerPrompt);
-            const plan = JSON.parse(managerResponse);
+            let loopCount = 0;
+            const maxLoops = 10; // Safety break
 
-            addLog(`[DEBUG] Received plan from Manager: ${JSON.stringify(plan, null, 2)}`);
+            while (loopCount < maxLoops) {
+                loopCount++;
+                addLog(`--- Turn ${loopCount} ---`);
 
-            if (!plan || !plan.taskType) {
-                throw new Error('Manager failed to classify the task.');
+                const nextAction = await runManagerAgent(context);
+
+                addLog(`[DEBUG] Next action from Manager: ${JSON.stringify(nextAction, null, 2)}`);
+
+                if (nextAction.action === 'finish') {
+                    addLog(`🏁 [Manager]: Task finished. Reason: ${nextAction.payload.reason}`);
+                    break; // Exit the loop
+                }
+
+                const expertPrompt = getExpertPrompt(nextAction, context.goal);
+                const expertCode = await runLLM(expertPrompt);
+
+                if (nextAction.action.startsWith('draw_')) {
+                    setDrawingCodes(prevCodes => [...prevCodes, expertCode]);
+                    addLog('✅ [Drawing Expert]: Canvas updated with new code.');
+                } else {
+                    throw new Error(`Unknown action type: ${nextAction.action}`);
+                }
+
+                context.history.push(nextAction);
             }
 
-            // Step 2: Get the code from the relevant expert
-            const expertPrompt = getExpertPrompt(plan.taskType, goal);
-            const expertCode = await runLLM(expertPrompt);
-
-            // Step 3: Execute the code
-            if (plan.taskType === 'browser_automation') {
-                await executeBrowserCode(expertCode);
-            } else if (plan.taskType === 'drawing') {
-                setDrawingCode(expertCode);
-                addLog('✅ [Drawing Expert]: Canvas updated with new code.');
-            } else {
-                throw new Error(`Unknown task type: ${plan.taskType}`);
+            if (loopCount >= maxLoops) {
+                addLog('⚠️ Safety break triggered. Maximum loop count reached.');
             }
-
-            addLog('🎉 Swarm task finished successfully!');
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
@@ -156,32 +148,32 @@ function App() {
     return (
         <div className="App">
             <header className="App-header">
-                <h1>Web Agent Swarm</h1>
-                <p>An experiment in multi-capability agent systems.</p>
+                <h1>{t('app_title')}</h1>
+                <p>{t('app_subtitle')}</p>
             </header>
             <main>
                 <div className="left-panel">
                     <div className="control-panel">
-                        <h2>Control Panel</h2>
+                        <h2>{t('control_panel_title')}</h2>
                         <form onSubmit={handleSubmit}>
                             <div className="input-group">
-                                <label htmlFor="goal">Your Goal:</label>
+                                <label htmlFor="goal">{t('goal_label')}</label>
                                 <textarea
                                     id="goal"
                                     value={goal}
                                     onChange={(e) => setGoal(e.target.value)}
                                     disabled={isLoading}
-                                    placeholder="e.g., Draw a clock showing the current time."
+                                    placeholder={t('goal_placeholder')}
                                     rows={4}
                                 />
                             </div>
                             <button type="submit" disabled={isLoading}>
-                                {isLoading ? 'Running...' : 'Execute Goal'}
+                                {isLoading ? t('running_button') : t('execute_button')}
                             </button>
                         </form>
                     </div>
                     <div className="logs-container">
-                        <h2>Logs</h2>
+                        <h2>{t('logs_title')}</h2>
                         <div className="logs">
                             {logs.map((log, index) => (
                                 <div key={index} className="log-entry">{log}</div>
@@ -191,8 +183,8 @@ function App() {
                 </div>
                 <div className="right-panel">
                     <div className="canvas-container">
-                        <h2>Canvas</h2>
-                        <DrawingCanvas code={drawingCode} />
+                        <h2>{t('canvas_title')}</h2>
+                        <DrawingCanvas codes={drawingCodes} />
                     </div>
                 </div>
             </main>

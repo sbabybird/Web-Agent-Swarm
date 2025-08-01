@@ -1,0 +1,11 @@
+{
+  "app_title": "Web Agent Swarm",
+  "app_subtitle": "一个多能力智能体系统实验项目",
+  "control_panel_title": "控制面板",
+  "goal_label": "您的目标:",
+  "goal_placeholder": "例如：画一个显示当前时间的时钟。",
+  "execute_button": "执行目标",
+  "running_button": "运行中...",
+  "logs_title": "日志",
+  "canvas_title": "画布"
+}

@@ -1,0 +1,11 @@
+{
+  "app_title": "Web Agent Swarm",
+  "app_subtitle": "An experiment in multi-capability agent systems.",
+  "control_panel_title": "Control Panel",
+  "goal_label": "Your Goal:",
+  "goal_placeholder": "e.g., Draw a clock showing the current time.",
+  "execute_button": "Execute Goal",
+  "running_button": "Running...",
+  "logs_title": "Logs",
+  "canvas_title": "Canvas"
+}

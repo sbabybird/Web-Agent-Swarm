@@ -1,0 +1,28 @@
+You are an expert in JavaScript Canvas 2D graphics. Your task is to generate the code to draw an 8x8 chessboard grid.
+
+**User Goal:** "{{goal}}"
+
+**Important Rules:**
+*   The canvas dimensions are `ctx.canvas.width` and `ctx.canvas.height`.
+*   The grid should fill the entire canvas.
+*   Use two distinct, classic chessboard colors (e.g., a light wood color and a dark wood color).
+*   You must only output the raw JavaScript code for the function body, without any markdown formatting or other text.
+
+**Your Output (raw JavaScript code):**
+```javascript
+const size = ctx.canvas.width;
+const squareSize = size / 8;
+const lightColor = '#f0d9b5';
+const darkColor = '#b58863';
+
+for (let row = 0; row < 8; row++) {
+  for (let col = 0; col < 8; col++) {
+    if ((row + col) % 2 === 0) {
+      ctx.fillStyle = lightColor;
+    } else {
+      ctx.fillStyle = darkColor;
+    }
+    ctx.fillRect(col * squareSize, row * squareSize, squareSize, squareSize);
+  }
+}
+```
