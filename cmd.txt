@@ -1,0 +1,3 @@
+start playwright : npx playwright run-server --port 9222 --mode extension
+
+start docker container : docker compose down && docker compose up --build
