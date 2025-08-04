@@ -82,17 +82,6 @@ function App() {
         return extractedContent.trim();
     };
 
-    const runManagerAgent = async (goal: string): Promise<any> => {
-        const managerPrompt = getManagerPrompt(goal);
-        const managerResponse = await runLLM(managerPrompt);
-        const plan = JSON.parse(managerResponse);
-
-        addLog(`🤔 [Manager Thought]: ${plan.thought}`);
-        addLog(`🧐 [Manager Critique]: ${plan.critique}`);
-
-        return plan.decision;
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
@@ -101,22 +90,27 @@ function App() {
         addLog('🚀 Starting Agent Swarm...');
 
         try {
-            const decision = await runManagerAgent(goal);
+            // Step 1: Ask the Manager to classify the task
+            const managerPrompt = getManagerPrompt(goal);
+            const managerResponse = await runLLM(managerPrompt);
+            const plan = JSON.parse(managerResponse);
 
-            addLog(`[DEBUG] Received decision from Manager: ${JSON.stringify(decision, null, 2)}`);
+            addLog(`[DEBUG] Received plan from Manager: ${JSON.stringify(plan, null, 2)}`);
 
-            if (!decision || !decision.taskType) {
+            if (!plan || !plan.taskType) {
                 throw new Error('Manager failed to classify the task.');
             }
 
-            const expertPrompt = getExpertPrompt(decision.taskType, goal);
+            // Step 2: Get the code from the relevant expert
+            const expertPrompt = getExpertPrompt(plan.taskType, goal);
             const expertCode = await runLLM(expertPrompt);
 
-            if (decision.taskType === 'drawing') {
+            // Step 3: Execute the code
+            if (plan.taskType === 'drawing') {
                 setDrawingCodes([expertCode]);
                 addLog('✅ [Drawing Expert]: Canvas updated with new code.');
             } else {
-                throw new Error(`Unsupported task type: ${decision.taskType}`);
+                throw new Error(`Unsupported task type: ${plan.taskType}`);
             }
 
             addLog('🎉 Swarm task finished successfully!');

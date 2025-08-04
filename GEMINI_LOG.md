@@ -2,48 +2,28 @@
 
 ---
 
-### **长期工作指令 (First Principle)**
+### **核心原则 (First Principles)**
 
-**在开始任何开发任务前，必须先更新相关文档（如`docs/Architectural_Overview.md`）和本工作日志（`GEMINI_LOG.md`），以确保项目状态和决策的可追溯性。**
+1.  **文档优先**: 在开始任何重大的开发或重构任务前，必须先更新相关文档 (`README.md`, `docs/Architectural_Overview.md`) 和本工作日志。
+2.  **中文优先**: 所有面向用户的界面，都必须以中文为第一优先语言，并支持 i18n。
 
 ---
 
-### **架构决策：向多能力平台演进 (2025-07-31)**
+### **当前架构状态 (As of 2025-07-31)**
 
-*   **核心洞察**: 为了将项目从单一用途的工具提升为真正的智能平台，我们需要支持多种不同类型的任务和能力。
+经过多次迭代和重构，项目当前采用了一个**返璞归真的、单轮执行的“专家”模型**。这个架构被证明是完成单一领域、创造性任务（如“画布绘图”）的最健壮、最可靠的方案。
 
-*   **架构升级决策**: 我们将扩展系统，在现有的“网页自动化”能力之外，新增一个并行的“**Canvas绘图**”能力。
+*   **核心理念**: “Manager 分类 -> Expert 生成 -> Executor 执行”。
 
-*   **新架构蓝图**:
-    1.  **前端UI**: 创建一个新的`frontend/src/components/DrawingCanvas.tsx`组件，并将其集成到主页面。
-    2.  **新智能体 (Drawing Expert)**: 创建一个新的`frontend/src/prompts/drawing_prompt.txt`，引导LLM将自然语言的绘画描述，转换为结构化的JSON绘图指令。
-    3.  **Manager Agent升级 (任务调度总管)**: 升级`frontend/src/prompts/manager_prompt.txt`，使其能够首先判断用户任务的类型（网页自动化 vs. 绘图），然后调用相应的专家智能体，并返回一个带有`taskType`标识的结构化JSON。
-    4.  **新后端服务**: 在`backend/server.js`中添加一个新的`/draw`端点，用于验证和传递绘图指令。
-    5.  **前端调度逻辑**: 重构`frontend/src/App.tsx`的`handleSubmit`函数，使其能够根据`taskType`，将任务分发给不同的执行逻辑。
+*   **工作流程**:
+    1.  **Manager Agent**: 接收用户的自然语言目标，并将其分类到一个预定义的、高级的 `taskType` (目前仅支持 `drawing`)。
+    2.  **Expert Agent**: 根据 `taskType` 和用户的原始目标，一次性地生成一个完整的、自包含的、可执行的 JavaScript 代码块。
+    3.  **Executor**: 前端的相应组件（如 `DrawingCanvas.tsx`）接收并安全地执行这段代码。
 
-### **架构颠覆性升级：赋予智能体真正的“创造力” (2025-07-31)**
+*   **关键组件**:
+    *   **`frontend/src/prompts/manager_prompt.txt`**: 一个简化的、只负责任务分类的“管理者”提示。
+    *   **`frontend/src/prompts/drawing_prompt.txt`**: 一个强大的、统一的“通用绘画专家”提示，它包含了多个高质量的示例（如画时钟、画棋盘），以指导 LLM 生成复杂、完整的绘图代码。
+    *   **`frontend/src/App.tsx`**: 移除了所有“会话式执行循环”的复杂逻辑，回归到一个简单、清晰的三步执行流程。
+    *   **`frontend/src/components/DrawingCanvas.tsx`**: 一个纯粹的“渲染引擎”，它接收一个完整的代码字符串，并在一个安全的沙箱中执行它。
 
-*   **核心洞察**: “JSON指令集”模式极大地限制了LLM的创造力，无法完成如“画一个钟表”这样的复杂任务。
-*   **架构升级决策**: 将“绘画”能力与“网页自动化”能力在架构上统一，都采用**“动态代码生成与安全执行”**模型。
-*   **实施细节**:
-    1.  **`frontend/src/prompts/drawing_prompt.txt`** 被彻底重写，现在它会指导LLM直接生成使用原生Canvas 2D API的、可执行的JavaScript代码。
-    2.  **`frontend/src/components/DrawingCanvas.tsx`** 被升级，使其能够接收并安全地执行（通过`new Function('ctx', code)`沙箱）LLM生成的绘图代码。
-    3.  **`frontend/src/App.tsx`** 的调度逻辑被简化和统一，现在它能一致地处理由不同专家生成的代码。
-    4.  **错误处理增强**: 实现了从前端Canvas到后端日志的错误上报机制。
-    5.  **代码提取逻辑修复**: 修正了`runLLM`函数中的正则表达式，使其能更健壮地从LLM的响应中提取代码块。
-
-### **UI/UX优化 (2025-07-31)**
-
-*   **核心决策**: 移除冗余的“Results”面板，将所有信息流统一到“Logs”面板，并对整体布局进行现代化和自适应改造。
-*   **实施细节**:
-    1.  **`frontend/src/App.css`** 被重写，引入了Flexbox和Grid布局，并应用了全局的`box-sizing: border-box`规则，以实现完美的对齐和自适应效果。
-    2.  **`frontend/src/App.tsx`** 的JSX结构和逻辑被更新，以匹配新的CSS，并实现了更具情境感的动态启动日志。
-
-### **版本控制与文档本地化 (2025-07-31)**
-
-*   **核心决策**: 将项目置于Git版本控制之下，并提供中文文档。
-*   **实施细节**:
-    1.  初始化了Git仓库，并创建了`.gitignore`文件。
-    2.  创建了全新的中文版`README.md`和`docs/Architectural_Overview.md`。
-    3.  删除了过时的`docs/Preliminary_Plan.md`。
-    4.  所有更改都已提交并推送到远程GitHub仓库。
+*   **项目状态**: 当前架构稳定、可靠，能够高质量地完成复杂的单轮绘图任务。所有与浏览器自动化、多轮迭代相关的代码和配置，都已被暂时移除，以降低复杂性并聚焦于核心能力。

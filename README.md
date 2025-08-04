@@ -12,10 +12,9 @@
 
 ## 技术栈
 
-*   **前端:** React, TypeScript, Vite
+*   **前端:** React, TypeScript, Vite, i18next
 *   **后端:** Node.js, Express
-*   **浏览器自动化:** Playwright
-*   **安全代码执行:** Node.js `vm` 模块
+*   **核心 AI 理念:** Chain of Thought, Self-Critique (在提示词中实现)
 *   **部署:** Docker, Docker Compose
 
 ## 关于本项目
@@ -47,4 +46,3 @@
 
 4.  **访问:**
     *   前端应用将在 `http://localhost:5173` 上可用。
-
