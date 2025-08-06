@@ -1,0 +1,84 @@
+--- Canvas Drawing Guidance & Examples ---
+
+Here are some recipes for creating complex shapes and effects. Use these as inspiration and guidance for fulfilling the user's goal.
+
+**Recipe 1: How to Draw a Star**
+To draw a 5-pointed star, you need to calculate the coordinates of the outer and inner points of the star and then connect them using a `draw_path` command with `line_to` segments.
+
+Example for a star centered at (100, 100) with a radius of 50:
+```json
+[
+  {
+    "action": "draw_path",
+    "params": {
+      "path": [
+        {"type": "begin_path"},
+        {"type": "move_to", "args": [100, 50]},
+        {"type": "line_to", "args": [119, 81]},
+        {"type": "line_to", "args": [159, 81]},
+        {"type": "line_to", "args": [129, 105]},
+        {"type": "line_to", "args": [140, 141]},
+        {"type": "line_to", "args": [100, 120]},
+        {"type": "line_to", "args": [60, 141]},
+        {"type": "line_to", "args": [71, 105]},
+        {"type": "line_to", "args": [41, 81]},
+        {"type": "line_to", "args": [81, 81]},
+        {"type": "close_path"}
+      ],
+      "fillStyle": "yellow",
+      "strokeStyle": "gold",
+      "lineWidth": 2
+    }
+  }
+]
+```
+
+**Recipe 2: How to Draw a Tree**
+A simple tree can be composed of a brown rectangle for the trunk and a green triangle (or a complex path) for the leaves.
+
+Example:
+```json
+[
+  {
+    "action": "fill_rect",
+    "params": {"x": 190, "y": 200, "width": 20, "height": 50, "color": "#8B4513"}
+  },
+  {
+    "action": "draw_path",
+    "params": {
+      "path": [
+        {"type": "begin_path"},
+        {"type": "move_to", "args": [200, 150]},
+        {"type": "line_to", "args": [150, 200]},
+        {"type": "line_to", "args": [250, 200]},
+        {"type": "close_path"}
+      ],
+      "fillStyle": "#228B22"
+    }
+  }
+]
+```
+
+**Recipe 3: How to Create a Sunset Effect**
+To create a sunset, use the `set_linear_gradient_fill` command to create a smooth color transition, and then use `fill_rect` to apply it to the entire canvas.
+
+Example:
+```json
+[
+  {
+    "action": "set_linear_gradient_fill",
+    "params": {
+      "x0": 0, "y0": 0, "x1": 0, "y1": 400,
+      "colorStops": [
+        {"offset": 0, "color": "#4682B4"},
+        {"offset": 0.5, "color": "#FF8C00"},
+        {"offset": 1, "color": "#800080"}
+      ]
+    }
+  },
+  {
+    "action": "fill_rect",
+    "params": {"x": 0, "y": 0, "width": 400, "height": 400}
+  }
+]
+```

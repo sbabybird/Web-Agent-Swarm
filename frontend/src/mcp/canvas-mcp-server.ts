@@ -73,5 +73,30 @@ export function createCanvasMCPServer(canvas: HTMLCanvasElement): MCPServer {
     return { success: true };
   });
 
+  // 3.4. Advanced Features
+  server.handle('set_linear_gradient_fill', async (params: { x0: number; y0: number; x1: number; y1: number; colorStops: { offset: number; color: string }[] }) => {
+    const gradient = ctx.createLinearGradient(params.x0, params.y0, params.x1, params.y1);
+    params.colorStops.forEach(stop => {
+      gradient.addColorStop(stop.offset, stop.color);
+    });
+    ctx.fillStyle = gradient;
+    return { success: true };
+  });
+
+  server.handle('set_radial_gradient_fill', async (params: { x0: number; y0: number; r0: number; x1: number; y1: number; r1: number; colorStops: { offset: number; color: string }[] }) => {
+    const gradient = ctx.createRadialGradient(params.x0, params.y0, params.r0, params.x1, params.y1, params.r1);
+    params.colorStops.forEach(stop => {
+      gradient.addColorStop(stop.offset, stop.color);
+    });
+    ctx.fillStyle = gradient;
+    return { success: true };
+  });
+
+  server.handle('put_image_data', async (params: { data: number[]; width: number; height: number; x?: number; y?: number }) => {
+    const imageData = new ImageData(new Uint8ClampedArray(params.data), params.width, params.height);
+    ctx.putImageData(imageData, params.x || 0, params.y || 0);
+    return { success: true };
+  });
+
   return server;
 }

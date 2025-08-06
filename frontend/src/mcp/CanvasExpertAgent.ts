@@ -2,6 +2,7 @@ import { Agent } from './Agent';
 import { Message } from './MessageBus';
 import { MCPClient, createMCPClient } from './pubsub';
 import canvasExpertPrompt from '../prompts/canvas_expert_prompt.txt?raw';
+import canvasGuidance from '../prompts/canvas_guidance.txt?raw';
 
 export class CanvasExpertAgent extends Agent {
   role = 'canvas_expert';
@@ -33,6 +34,10 @@ export class CanvasExpertAgent extends Agent {
   }
 
   private getExpertPrompt(goal: string): string {
-    return canvasExpertPrompt.replace('{{goal}}', goal);
+    let prompt = canvasExpertPrompt.replace('{{goal}}', goal);
+    // For now, we inject the full guidance every time.
+    // A more advanced implementation could dynamically select relevant guidance.
+    prompt = prompt.replace('{{guidance}}', canvasGuidance);
+    return prompt;
   }
 }

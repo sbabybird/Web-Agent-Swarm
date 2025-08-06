@@ -55,3 +55,12 @@ LLM 与工具之间的通信是通过 JSON 对象完成的。主要的通信形�
     *   `{"type": "arc", "args": [x, y, radius, startAngle, endAngle]}`
     *   `{"type": "rect", "args": [x, y, width, height]}`
     *   `{"type": "close_path"}`
+
+### 3.4. 高级功能
+
+*   **`set_linear_gradient_fill`**: 创建并设置一个线性渐变作为当前的填充样式。
+    *   `params`: `{"x0": number, "y0": number, "x1": number, "y1": number, "colorStops": Array<{offset: number, color: string}>}`
+*   **`set_radial_gradient_fill`**: 创建并设置一个径向渐变作为当前的填充样式。
+    *   `params`: `{"x0": number, "y0": number, "r0": number, "x1": number, "y1": number, "r1": number, "colorStops": Array<{offset: number, color: string}>}`
+*   **`put_image_data`**: 将像素数据直接绘制到画布上。这对于生成复杂的、像素级的图像非常有用。
+    *   `params`: `{"data": Array<number>, "width": number, "height": number, "x": number?, "y": number?}` (data 是一个 [r,g,b,a, r,g,b,a, ...] 格式的一维数组)
