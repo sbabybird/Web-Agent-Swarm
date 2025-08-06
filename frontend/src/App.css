@@ -53,21 +53,21 @@ body {
 
 main {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 3fr 3.5fr 3.5fr;
   gap: 2rem;
   padding: 2rem;
   flex-grow: 1;
   overflow: hidden; /* Prevent main from causing page scroll */
 }
 
-.left-panel, .right-panel {
+.left-panel, .center-panel, .right-panel {
   display: flex;
   flex-direction: column;
   gap: 2rem;
   min-height: 0; /* Allow panels to shrink properly */
 }
 
-.control-panel, .logs-container, .canvas-container {
+.control-panel, .logs-container, .canvas-container, .scene-container {
   background-color: var(--surface-color);
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
@@ -76,12 +76,12 @@ main {
   flex-direction: column;
 }
 
-.logs-container, .canvas-container {
+.logs-container, .canvas-container, .scene-container {
     flex-grow: 1;
     min-height: 0; /* Allow log container to shrink and grow */
 }
 
-.control-panel h2, .logs-container h2, .canvas-container h2 {
+.control-panel h2, .logs-container h2, .canvas-container h2, .scene-container h2 {
   margin-top: 0;
   margin-bottom: 1rem;
   border-bottom: 1px solid var(--border-color);

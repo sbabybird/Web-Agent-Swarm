@@ -6,13 +6,16 @@
 
 ## 核心理念
 
-本项目旨在构建一个可扩展的、多能力的智能体平台。系统的核心是一个“任务调度总管”智能体，它能理解用户的目标，并调用相应的“专家”智能体来完成任务。
+本项目旨在构建一个可扩展的、多能力的智能体平台。系统的核心是一个“任务调度总管”智能体，它能理解用户的目标，并调用相应的“专家”智能体来完成任务。目前，平台集成了两种核心能力：
+
+*   **2D 矢量绘图**: 基于 Canvas 2D API。
+*   **3D 场景创造**: 基于 Three.js。
 
 **欲了解详细的架构设计和数据流，请参阅 [架构概览 (Architectural Overview)](./docs/Architectural_Overview.md)。**
 
 ## 技术栈
 
-*   **前端:** React, TypeScript, Vite, i18next
+*   **前端:** React, TypeScript, Vite, Three.js, i18next
 *   **后端:** Node.js, Express
 *   **核心 AI 理念:** 通过严格的提示工程（Prompt Engineering）和协议约束（Protocol Enforcement）来实现可靠的、结构化的 LLM 输出。
 *   **部署:** Docker, Docker Compose

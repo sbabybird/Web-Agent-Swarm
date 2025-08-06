@@ -1,0 +1,49 @@
+--- 3D Scene Guidance & Examples ---
+
+Here are some recipes for creating basic 3D scenes. Use these as inspiration and guidance for fulfilling the user's goal.
+
+**Recipe 1: How to create a simple scene with a red cube**
+To create a basic scene, you need to add a light source and a mesh object.
+
+Example:
+```json
+[
+  {
+    "action": "add_light",
+    "params": {"type": "AmbientLight", "color": "#ffffff", "intensity": 0.5}
+  },
+  {
+    "action": "add_light",
+    "params": {"type": "DirectionalLight", "color": "#ffffff", "intensity": 1, "position": {"x": 5, "y": 5, "z": 5}}
+  },
+  {
+    "action": "create_mesh",
+    "params": {
+      "id": "my_cube",
+      "geometry": "BoxGeometry",
+      "material": "MeshStandardMaterial",
+      "materialParams": {"color": "red"},
+      "position": {"x": 0, "y": 0, "z": 0}
+    }
+  }
+]
+```
+
+**Recipe 2: How to create a blue sphere next to the cube**
+Use the `set_position` command to place objects in the scene.
+
+Example:
+```json
+[
+  {
+    "action": "create_mesh",
+    "params": {
+      "id": "my_sphere",
+      "geometry": "SphereGeometry",
+      "material": "MeshStandardMaterial",
+      "materialParams": {"color": "blue"},
+      "position": {"x": 2, "y": 0, "z": 0}
+    }
+  }
+]
+```

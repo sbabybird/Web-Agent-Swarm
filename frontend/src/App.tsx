@@ -2,9 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import './App.css';
 import DrawingCanvas from './components/DrawingCanvas';
+import Scene from './components/Scene';
 import messageBus, { Message } from './mcp/MessageBus';
 import { ManagerAgent } from './mcp/ManagerAgent';
 import { CanvasExpertAgent } from './mcp/CanvasExpertAgent';
+import { SceneExpertAgent } from './mcp/SceneExpertAgent';
 import { LoggerAgent } from './mcp/LoggerAgent';
 import { Agent } from './mcp/Agent';
 
@@ -66,6 +68,7 @@ function App() {
             const logger = new LoggerAgent(addLog);
             const manager = new ManagerAgent(runLLM);
             const canvasExpert = new CanvasExpertAgent(runLLM);
+            const sceneExpert = new SceneExpertAgent(runLLM);
 
             class UIAgent extends Agent {
                 role = 'ui';
@@ -73,6 +76,9 @@ function App() {
                     if (message.content.status === 'complete') {
                         setIsLoading(false);
                         addLog('✅ Task Complete!');
+                    } else if (message.content.status === 'error') {
+                        setIsLoading(false);
+                        addLog(`❌ Error: ${message.content.error}`);
                     }
                 }
             }
@@ -80,6 +86,7 @@ function App() {
             messageBus.register(logger);
             messageBus.register(manager);
             messageBus.register(canvasExpert);
+            messageBus.register(sceneExpert);
             messageBus.register(new UIAgent());
 
             isInitialized.current = true;
@@ -107,7 +114,7 @@ function App() {
                 <h1>{t('app_title')}</h1>
                 <p>{t('app_subtitle')}</p>
             </header>
-            <main>
+            <main className="main-content">
                 <div className="left-panel">
                     <div className="control-panel">
                         <h2>{t('control_panel_title')}</h2>
@@ -137,10 +144,16 @@ function App() {
                         </div>
                     </div>
                 </div>
-                <div className="right-panel">
+                <div className="center-panel">
                     <div className="canvas-container">
                         <h2>{t('canvas_title')}</h2>
                         <DrawingCanvas />
+                    </div>
+                </div>
+                <div className="right-panel">
+                    <div className="scene-container">
+                        <h2>3D Scene</h2>
+                        <Scene />
                     </div>
                 </div>
             </main>

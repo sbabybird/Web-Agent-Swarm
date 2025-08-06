@@ -25,6 +25,6 @@ export class ManagerAgent extends Agent {
   }
 
   private getManagerPrompt(goal: string): string {
-    return `User goal: "${goal}". Which expert is best for this task? Your answer MUST be a single word from this list: [canvas_expert]`;
+    return `User goal: "${goal}". Which expert is best for this task? Your answer MUST be a single word from this list: [canvas_expert, scene_expert]`;
   }
 }
