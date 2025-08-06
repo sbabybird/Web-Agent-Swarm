@@ -111,6 +111,34 @@ main {
   min-height: 60px;
 }
 
+.input-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: calc(var(--border-radius) * 0.75);
+  font-size: 1rem;
+  font-family: var(--font-family);
+  background-color: var(--surface-color);
+  color: var(--text-color); /* Ensure text is visible */
+  appearance: none; /* Remove default select arrow */
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2C197.3L159.3%2C69.6c-3.7-3.7-9.8-3.7-13.5%2C0L5.3%2C197.3c-3.7%2C3.7-3.7%2C9.8%2C0%2C13.5l13.5%2C13.5c3.7%2C3.7%2C9.8%2C3.7%2C13.5%2C0l118.2-118.2l118.2%2C118.2c3.7%2C3.7%2C9.8%2C3.7%2C13.5%2C0l13.5-13.5C290.7%2C207.1%2C290.7%2C201%2C287%2C197.3z%22%2F%3E%3C%2Fsvg%3E');
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.6em auto;
+  padding-right: 2.5rem; /* Make space for the custom arrow */
+}
+
+.input-group select option {
+  color: var(--text-color); /* Ensure option text is visible */
+  background-color: var(--surface-color); /* Ensure option background is distinct */
+}
+
+.input-group select:disabled {
+  background-color: var(--background-color);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 button {
   background-color: var(--primary-color);
   color: white;

@@ -1,6 +1,7 @@
 import { Agent } from './Agent';
 import { Message } from './MessageBus';
 import { MCPClient, createMCPClient } from './pubsub';
+import { extractJson } from '../utils/json';
 import canvasExpertPrompt from '../prompts/canvas_expert_prompt.txt?raw';
 import canvasGuidance from '../prompts/canvas_guidance.txt?raw';
 

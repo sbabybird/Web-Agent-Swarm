@@ -15,6 +15,22 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 function App() {
     const { t } = useTranslation();
     const [goal, setGoal] = useState(t('goal_placeholder'));
+    const predefinedGoals = [
+        { label: '画一个红色的正方形', value: '画一个红色的正方形' },
+        { label: '画一个蓝色的圆形', value: '画一个蓝色的圆形' },
+        { label: '画一个从蓝色到红色的线性渐变背景', value: '画一个从蓝色到红色的线性渐变背景' },
+        { label: '画一个黄色的五角星', value: '画一个黄色的五角星' },
+        { label: '画一棵简单的树', value: '画一棵简单的树' },
+        { label: '画一个日落效果', value: '画一个日落效果' },
+        { label: '画一个数字时钟', value: '画一个数字时钟' },
+        { label: '创建一个包含红色立方体的 3D 场景', value: '创建一个包含红色立方体的 3D 场景' },
+        { label: '在 3D 场景中放置一个蓝色的球体和一个绿色的平面', value: '在 3D 场景中放置一个蓝色的球体和一个绿色的平面' },
+        { label: '添加一个点光源和一个环境光到 3D 场景', value: '添加一个点光源和一个环境光到 3D 场景' },
+        { label: '创建一个带有纹理的立方体', value: '创建一个带有纹理的立方体' },
+        { label: '创建一个旋转的甜甜圈', value: '创建一个旋转的甜甜圈' },
+        { label: '清空 2D 画布', value: '清空 2D 画布' },
+        { label: '清空 3D 场景', value: '清空 3D 场景' },
+    ];
     const [logs, setLogs] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const isInitialized = useRef(false);
@@ -120,9 +136,24 @@ function App() {
                         <h2>{t('control_panel_title')}</h2>
                         <form onSubmit={handleSubmit}>
                             <div className="input-group">
-                                <label htmlFor="goal">{t('goal_label')}</label>
+                                <label htmlFor="goal-select">{t('select_goal_label')}</label>
+                                <select
+                                    id="goal-select"
+                                    onChange={(e) => setGoal(e.target.value)}
+                                    value={goal}
+                                    disabled={isLoading}
+                                >
+                                    {predefinedGoals.map((option, index) => (
+                                        <option key={index} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="input-group">
+                                <label htmlFor="goal-textarea">{t('goal_label')}</label>
                                 <textarea
-                                    id="goal"
+                                    id="goal-textarea"
                                     value={goal}
                                     onChange={(e) => setGoal(e.target.value)}
                                     disabled={isLoading}
