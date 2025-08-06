@@ -14,7 +14,7 @@
 
 *   **前端:** React, TypeScript, Vite, i18next
 *   **后端:** Node.js, Express
-*   **核心 AI 理念:** Chain of Thought, Self-Critique (在提示词中实现)
+*   **核心 AI 理念:** 通过严格的提示工程（Prompt Engineering）和协议约束（Protocol Enforcement）来实现可靠的、结构化的 LLM 输出。
 *   **部署:** Docker, Docker Compose
 
 ## 关于本项目
@@ -30,15 +30,7 @@
 2.  **配置:**
     *   在 `docker-compose.yml` 文件中，修改 `LOCAL_LLM_URL` 环境变量，使其指向您本地LLM服务的正确地址。
 
-3.  **首次启动与开发:**
-    *   为了获得最佳的本地开发体验（包括IDE的智能提示），请先在 `frontend` 和 `backend` 目录中手动运行 `npm install`。
-        ```bash
-        cd frontend
-        npm install
-        cd ../backend
-        npm install
-        cd ..
-        ```
+3.  **启动:**
     *   使用Docker Compose构建并启动服务：
         ```bash
         docker compose up --build -d

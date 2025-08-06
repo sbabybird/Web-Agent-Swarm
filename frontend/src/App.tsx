@@ -1,30 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import './App.css';
 import DrawingCanvas from './components/DrawingCanvas';
-import managerPromptTemplate from './prompts/manager_prompt.txt?raw';
-import drawingPromptTemplate from './prompts/drawing_prompt.txt?raw';
+import messageBus, { Message } from './mcp/MessageBus';
+import { ManagerAgent } from './mcp/ManagerAgent';
+import { CanvasExpertAgent } from './mcp/CanvasExpertAgent';
+import { LoggerAgent } from './mcp/LoggerAgent';
+import { Agent } from './mcp/Agent';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-
-const getManagerPrompt = (goal: string): string => {
-    return managerPromptTemplate.replace('{{goal}}', goal);
-};
-
-const getExpertPrompt = (taskType: string, goal: string): string => {
-    let template = '';
-    if (taskType === 'drawing') {
-        template = drawingPromptTemplate;
-    }
-    return template.replace('{{goal}}', goal);
-};
 
 function App() {
     const { t } = useTranslation();
     const [goal, setGoal] = useState(t('goal_placeholder'));
     const [logs, setLogs] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [drawingCodes, setDrawingCodes] = useState<(string | null)[]>([]);
+    const isInitialized = useRef(false);
 
     const addLog = (message: string) => {
         setLogs(prev => [message, ...prev]);
@@ -38,88 +29,75 @@ function App() {
             body: JSON.stringify({ prompt }),
         });
 
-        if (!response.body) throw new Error('Response body is empty.');
+        if (!response.ok || !response.body) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-        let llmResult = '';
-        let buffer = '';
+        let fullResponse = '';
 
         while (true) {
             const { done, value } = await reader.read();
             if (done) {
-                if (buffer) {
-                    try {
-                        const parsed = JSON.parse(buffer);
-                        if (parsed.message && parsed.message.content) {
-                            llmResult += parsed.message.content;
-                        }
-                    } catch (e) { /* Incomplete JSON is fine */ }
-                }
                 break;
             }
-            buffer += decoder.decode(value, { stream: true });
-            let boundary;
-            while ((boundary = buffer.indexOf('\n')) !== -1) {
-                const piece = buffer.substring(0, boundary);
-                buffer = buffer.substring(boundary + 1);
-                if (piece) {
-                    try {
-                        const parsed = JSON.parse(piece);
-                        if (parsed.message && parsed.message.content) {
-                            llmResult += parsed.message.content;
-                        }
-                    } catch (e) {
-                        console.warn(`Could not parse a line from the LLM stream: "${piece}"`);
+            const chunk = decoder.decode(value, { stream: true });
+            // Ollama streaming sends multiple JSON objects, we need to parse them one by one
+            const jsonObjects = chunk.split('\n').filter(str => str.length > 0);
+            for (const jsonObjStr of jsonObjects) {
+                try {
+                    const parsed = JSON.parse(jsonObjStr);
+                    if (parsed.message && parsed.message.content) {
+                        fullResponse += parsed.message.content;
                     }
+                } catch (e) {
+                    console.error("Failed to parse JSON chunk:", jsonObjStr);
                 }
             }
         }
 
         addLog(`🧠 [Agent]: Generated a response.`);
-        const codeMatch = llmResult.match(/```(?:javascript|json)?\n([\s\S]*?)\n```/);
-        const extractedContent = codeMatch ? codeMatch[1] : llmResult;
-        return extractedContent.trim();
+        return fullResponse.trim();
     };
+
+    useEffect(() => {
+        if (!isInitialized.current) {
+            const logger = new LoggerAgent(addLog);
+            const manager = new ManagerAgent(runLLM);
+            const canvasExpert = new CanvasExpertAgent(runLLM);
+
+            class UIAgent extends Agent {
+                role = 'ui';
+                async handleMessage(message: Message): Promise<void> {
+                    if (message.content.status === 'complete') {
+                        setIsLoading(false);
+                        addLog('✅ Task Complete!');
+                    }
+                }
+            }
+
+            messageBus.register(logger);
+            messageBus.register(manager);
+            messageBus.register(canvasExpert);
+            messageBus.register(new UIAgent());
+
+            isInitialized.current = true;
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setLogs([]);
-        setDrawingCodes([]);
         addLog('🚀 Starting Agent Swarm...');
 
         try {
-            // Step 1: Ask the Manager to classify the task
-            const managerPrompt = getManagerPrompt(goal);
-            const managerResponse = await runLLM(managerPrompt);
-            const plan = JSON.parse(managerResponse);
-
-            addLog(`[DEBUG] Received plan from Manager: ${JSON.stringify(plan, null, 2)}`);
-
-            if (!plan || !plan.taskType) {
-                throw new Error('Manager failed to classify the task.');
-            }
-
-            // Step 2: Get the code from the relevant expert
-            const expertPrompt = getExpertPrompt(plan.taskType, goal);
-            const expertCode = await runLLM(expertPrompt);
-
-            // Step 3: Execute the code
-            if (plan.taskType === 'drawing') {
-                setDrawingCodes([expertCode]);
-                addLog('✅ [Drawing Expert]: Canvas updated with new code.');
-            } else {
-                throw new Error(`Unsupported task type: ${plan.taskType}`);
-            }
-
-            addLog('🎉 Swarm task finished successfully!');
-
+            messageBus.dispatch({ sender: 'user', receiver: 'manager', content: { goal } });
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             addLog(`❌ Top-level Error: ${errorMessage}`);
-        } finally {
-            setIsLoading(false);
+            setIsLoading(false); // Also stop loading on error
         }
     };
 
@@ -162,7 +140,7 @@ function App() {
                 <div className="right-panel">
                     <div className="canvas-container">
                         <h2>{t('canvas_title')}</h2>
-                        <DrawingCanvas codes={drawingCodes} />
+                        <DrawingCanvas />
                     </div>
                 </div>
             </main>

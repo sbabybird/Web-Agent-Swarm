@@ -13,11 +13,10 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: npm run dev
+    command: sh -c "npm install && npm run dev"
     ports:
       - "3000:3000"
     volumes:
       - ./backend:/app
     environment:
       - LOCAL_LLM_URL=http://10.0.16.175:11434/api
-      
